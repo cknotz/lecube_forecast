@@ -42,3 +42,4 @@ vignettes/*.pdf
 # Additional files
 .secrets
 login.R
+sheet.txt

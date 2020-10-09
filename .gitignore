@@ -43,3 +43,4 @@ vignettes/*.pdf
 .secrets
 login.R
 sheet.txt
+mail.txt

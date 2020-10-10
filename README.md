@@ -5,4 +5,4 @@ Scraping occupancy stats from bouldering gym website &amp; forecasting future oc
 
 `lecube_forecast.R` downloads the scraped data from GoogleSheet and graphs them.
 
-*To do*: Once more data is available, forecast using neural net; add summary stats; wrap in Shiny dashboard
+*To do*: Once more data are available, forecast using neural net; add summary stats; wrap in Shiny dashboard

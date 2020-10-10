@@ -9,7 +9,7 @@ library(webdriver)
 library(rvest)
 
 # Invoking phantomjs() - website is dynamically created
-install_phantomjs()
+#install_phantomjs()
 pjs_instance <- run_phantomjs()
 pjs_session <- Session$new(port = pjs_instance$port)
 
@@ -27,9 +27,10 @@ occ <- cube %>%
   html_text() %>% 
   gsub("%","",.)
 
-time <- Sys.time()
+time <- as.character.Date(Sys.time())
 
-cube_occ <- as.data.frame(cbind(time,occ))
+cube_occ <- data.frame(time = time,
+                          occ = as.numeric(occ))
 
 # Export to Googlesheet
 #######################

@@ -23,11 +23,14 @@ cubedata <- read_sheet(ss=sheet)
 # Change datetime format
 cubedata$time <- substr(cubedata$time, 1, 16)
   cubedata$time <- as.POSIXct(cubedata$time)
+  cubedata$day <- weekdays(cubedata$time,
+                           abbreviate = T)
 
 
 # Graph
 ggplot(data=cubedata,aes(x=time,y=occ)) +
   geom_line() +
+  stat_smooth(linetype="dashed",color="gray21", alpha=.2,size=.5) +
   ylab("Occupancy (%)") +
   xlab("") +
   theme_bw()

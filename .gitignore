@@ -44,3 +44,4 @@ vignettes/*.pdf
 login.R
 sheet.txt
 mail.txt
+rsconnect

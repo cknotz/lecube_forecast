@@ -20,7 +20,7 @@ library(dashboardthemes)
 sheet <- readLines("sheet.txt")
 mail <- readLines("mail.txt")
 
-# Authenticate
+#Authenticate
 options(gargle_oauth_cache = ".secrets")
 gs4_auth(email = mail,
          cache = ".secrets")
@@ -59,9 +59,6 @@ norm <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cu
 compa <- aggregate(cubedata$occ_inter,list(cubedata$day,cubedata$hour),max) # Specific day/time averages
 max <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cubedata$hour,1)]
 
-# Forecast
-#fit <- nnetar(cubedata$occ_inter)
-#autoplot(forecast(fit,h=72))
 
 # Setting up dashboard
 ######################
@@ -81,10 +78,17 @@ ui <- dashboardPage(
                     valueBoxOutput("normal"),
                     valueBoxOutput("max")
                     ),
-                box(width = 6, title = "What does the forecast say?", collapsible = F, solidHeader = T,)
+                box(width = 6, title = "How will it look like over the next hours?", collapsible = F, solidHeader = T,
+                    actionBttn(inputId = "forecastbtn",
+                               label = "Run forecast",
+                               style = "material-flat",
+                               color = "warning",
+                               size = "xs"),
+                    plotOutput("forecast")
+                    )
               ),
               fluidRow(
-                box(width = 12, title = "Past occupancy rates",collapsible = T, solidHeader = F,collapsed = T,
+                box(width = 12, title = "Show me all the data",collapsible = T, solidHeader = F,collapsed = T,
                     plotOutput("past")
                     )
               )
@@ -92,7 +96,7 @@ ui <- dashboardPage(
       tabItem(tabName = "info")))
 )
 
-server <- function(input, output) { 
+server <- function(input, output, session) { 
   
 output$past <- renderPlot({
   ggplot(data=cubedata,aes(x=time)) +
@@ -104,6 +108,7 @@ output$past <- renderPlot({
   theme_bw()
 })
 
+{
 # Latest box
 if(tail(cubedata$occ_inter,1)>=75){
   output$current <- renderValueBox({
@@ -141,32 +146,32 @@ if(tail(cubedata$occ_inter,1)<25){
 # Mean box
 if(norm>=75){
 output$normal <- renderValueBox({
-  valueBox(paste0(norm,"%"),
-           subtitle = "Average occupancy for this day & hour",
+  valueBox(paste0(round(norm,0),"%"),
+           subtitle = "Average for this day & hour",
            color = "red",
            width = 12)
 })
 }
 if(norm<75 & norm>=50){
   output$normal <- renderValueBox({
-  valueBox(paste0(norm,"%"),
-           subtitle = "Average occupancy for this day & hour",
+  valueBox(paste0(round(norm,0),"%"),
+           subtitle = "Average for this day & time",
            color = "orange",
            width = NULL)
   })
 }
 if(norm<50 & norm>=25){
   output$normal <- renderValueBox({
-  valueBox(paste0(norm,"%"),
-           subtitle = "Average occupancy for this day & hour",
+  valueBox(paste0(round(norm,0),"%"),
+           subtitle = "Average for this day & time",
            color = "yellow",
            width = NULL)
   })
 }
 if(norm<25){
   output$normal <- renderValueBox({
-  valueBox(paste0(norm,"%"),
-           subtitle = "Average occupancy for this day & hour",
+  valueBox(paste0(round(norm,0),"%"),
+           subtitle = "Average for this day & time",
            color = "green",
            width = NULL)
   })
@@ -175,32 +180,58 @@ if(norm<25){
 # Max box
 if(max>=75){
 output$max <- renderValueBox({
-  valueBox(paste0(max,"%"),
-           subtitle = "Maximum rate observed for this day & hour",
+  valueBox(paste0(round(max,0),"%"),
+           subtitle = "Maximum observed for this day & time",
            color = "red")
 })
 }
 if(max<75 & max>=50){
   output$max <- renderValueBox({
-    valueBox(paste0(max,"%"),
-           subtitle = "Maximum rate observed for this day & hour",
+    valueBox(paste0(round(max,0),"%"),
+           subtitle = "Maximum observed for this day & time",
            color = "orange")
 })
 }
 if(max<50 & max>=25){
   output$max <- renderValueBox({
-    valueBox(paste0(max,"%"),
-           subtitle = "Maximum rate observed for this day & hour",
+    valueBox(paste0(round(max,0),"%"),
+           subtitle = "Maximum observed for this day & time",
            color = "yellow")
 })
 }
 if(max<25){
   output$max <- renderValueBox({
-    valueBox(paste0(max,"%"),
-           subtitle = "Maximum rate observed for this day & hour",
+    valueBox(paste0(round(max,0),"%"),
+           subtitle = "Maximum observed for this day & time",
            color = "green")
 })
 }
+} # Boxes with descriptive figures
+  
+# Forecasting & graph
+observeEvent(input$forecastbtn,{
+  
+showModal(modalDialog("Computer's computin', please wait...", footer=NULL))
+  
+# Running forecast
+fit <- nnetar(cubedata$occ_inter)
+  fcast <- forecast(fit,h=72)
+  preddata <- data.frame(vals = c(fcast$x,fcast$mean),
+                       count = 1:(length(fcast$x)+length(fcast$mean)))
+  preddata$ind <- as.factor(ifelse(preddata$count<=length(fcast$x),"Observed","Forecast"))
+
+lo <- length(cubedata$occ)-32
+  hi <- length(preddata$vals)
+
+  print(as.character(length(preddata$vals)))
+  removeModal()
+  
+output$forecast <- renderPlot({
+ggplot(preddata[lo:hi,],aes(x = count,y=vals)) +
+  geom_line(aes(color = ind))
+
+})
+})
 
 }
 

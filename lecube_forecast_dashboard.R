@@ -16,6 +16,9 @@ library(dashboardthemes)
 # Setup
 #######
 
+# Load themes for dashboard
+load("bluethemes.RData")
+
 # Get metadata
 sheet <- readLines("sheet.txt")
 mail <- readLines("mail.txt")
@@ -69,11 +72,13 @@ ui <- dashboardPage(
     sidebarMenu(menuItem("Current occupancy & forecast",tabName = "data", icon = icon("dashboard")),
                 menuItem("Background info", tabName = "info", icon = icon("info-circle", lib = "font-awesome")))),
   dashboardBody(
-    shinyDashboardThemes(theme = "grey_light"),
+    #shinyDashboardThemes(theme = "grey_light"),
+    newblueTheme,
     tabItems(
       tabItem(tabName = "data",
               fluidRow(
-                box(width = 6, title = paste0("How does it look at the gym (",substr(tail(cubedata$hour,1),1,5),")?"), collapsible = F, solidHeader = F,
+                box(width = 6, title = paste0("How does it look at the gym (",substr(tail(cubedata$hour,1),1,5),")?"),
+                    collapsible = F, solidHeader = T,
                     valueBoxOutput("current"),
                     valueBoxOutput("normal"),
                     valueBoxOutput("max")
@@ -88,7 +93,7 @@ ui <- dashboardPage(
                     )
               ),
               fluidRow(
-                box(width = 12, title = "Show me all the data",collapsible = T, solidHeader = F,collapsed = T,
+                box(width = 12, title = "Show me all the data",collapsible = T, solidHeader = T,collapsed = T,
                     plotOutput("past")
                     )
               )
@@ -99,13 +104,12 @@ ui <- dashboardPage(
 server <- function(input, output, session) { 
   
 output$past <- renderPlot({
-  ggplot(data=cubedata,aes(x=time)) +
-  geom_line(aes(y=occ_inter)) +
-  geom_hline(yintercept = 100,linetype="dashed",color="gray") +
-  #stat_smooth(aes(y=occ),linetype="dashed",color="gray21", alpha=.2,size=.5) +
+  ggplot(data=cubedata,aes(x=time,y=occ_inter)) +
+  geom_line(color = "#68e8ff") + #, 
+  geom_hline(yintercept = 100,linetype="dashed",color="#e6fbff") +
   ylab("Occupancy (%)") +
   xlab("") +
-  theme_bw()
+  theme_newblue()
 })
 
 {
@@ -227,8 +231,10 @@ lo <- length(cubedata$occ)-32
   removeModal()
   
 output$forecast <- renderPlot({
-ggplot(preddata[lo:hi,],aes(x = count,y=vals)) +
-  geom_line(aes(color = ind))
+ggplot(preddata[lo:hi,],aes(x = count,y=vals, group = ind,color = ind)) +
+  geom_line() +
+  scale_color_manual(values = c("#fcba04","#68e8ff")) +
+    theme_newblue()
 
 })
 })

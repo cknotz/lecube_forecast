@@ -83,7 +83,7 @@ ui <- dashboardPage(
                     valueBoxOutput("normal"),
                     valueBoxOutput("max")
                     ),
-                box(width = 6, title = "How will it look like over the next hours?", collapsible = F, solidHeader = T,
+                box(width = 6, title = "How will it look like from now on?", collapsible = F, solidHeader = T,
                     actionBttn(inputId = "forecastbtn",
                                label = "Run forecast",
                                style = "material-flat",

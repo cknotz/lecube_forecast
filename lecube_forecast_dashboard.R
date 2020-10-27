@@ -36,7 +36,7 @@ cubedata <- cubedata[2:nrow(cubedata),]
 
 # Change datetime format
 cubedata$time <- substr(cubedata$time, 1, 16)
-  cubedata$time <- as.POSIXct(cubedata$time)
+  cubedata$time <- as.POSIXct(cubedata$time, tz="Europe/Paris")
   cubedata$day <- weekdays(cubedata$time,
                            abbreviate = T)
   cubedata$hour <- format(cubedata$time,
@@ -77,7 +77,7 @@ ui <- dashboardPage(
     tabItems(
       tabItem(tabName = "data",
               fluidRow(
-                box(width = 6, title = paste0("How does it look at the gym (",substr(tail(cubedata$hour,1),1,5),")?"),
+                box(width = 6, title = paste0("How does it look at the gym (as of ",substr(tail(cubedata$hour,1),1,5),")?"),
                     collapsible = F, solidHeader = T,
                     valueBoxOutput("current"),
                     valueBoxOutput("normal"),
@@ -218,23 +218,39 @@ observeEvent(input$forecastbtn,{
 showModal(modalDialog("Computer's computin', please wait...", footer=NULL))
   
 # Running forecast
-fit <- nnetar(cubedata$occ_inter)
-  fcast <- forecast(fit,h=72)
+b <- 30 # Time windom 
+h <- 30 
+  
+fit <- nnetar(cubedata$occ_inter, lambda = "auto")
+  fcast <- forecast(fit,h=h)
   preddata <- data.frame(vals = c(fcast$x,fcast$mean),
                        count = 1:(length(fcast$x)+length(fcast$mean)))
-  preddata$ind <- as.factor(ifelse(preddata$count<=length(fcast$x),"Observed","Forecast"))
+  preddata$ind <- as.factor(ifelse(preddata$count<=length(cubedata$time),"Observed","Forecast"))
+  
+  #if(length(cubedata$time)%%2==0){
+  preddata$epoch <- seq(from = -(length(cubedata$time)-1)/2,length.out = length(preddata$vals),by=.5)
+  #}else{
+  #preddata$epoch <- seq(from = -(length(cubedata$time)-1)/2,length.out = length(preddata$vals),by=.5)
+  #}
+  
 
-lo <- length(cubedata$occ)-32
+lo <- length(cubedata$occ)-b
   hi <- length(preddata$vals)
 
   print(as.character(length(preddata$vals)))
   removeModal()
   
 output$forecast <- renderPlot({
-ggplot(preddata[lo:hi,],aes(x = count,y=vals, group = ind,color = ind)) +
+ggplot(preddata[lo:hi,],aes(x = epoch,y=vals, group = ind,color = ind)) +
   geom_line() +
   scale_color_manual(values = c("#fcba04","#68e8ff")) +
-    theme_newblue()
+  scale_x_continuous(breaks = seq(from = -b/2, to = h/2, by = 5)) +
+  geom_vline(xintercept = 0, color = "#e6fbff", linetype = "dotted") +
+    xlab("Hours") +
+    ylab("Occupancy (%)") +
+    labs(caption = paste0("0 = ",format(tail(cubedata$time,1),"%b %d %H:%M"))) +
+    theme_newblue() +
+    theme(legend.title = element_blank())
 
 })
 })

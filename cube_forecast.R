@@ -7,6 +7,7 @@
 library(ggplot2)
 library(tidyverse)
 library(googlesheets4)
+library(forecast)
 
 # Get metadata
 sheet <- readLines("sheet.txt")
@@ -58,13 +59,31 @@ ggplot(data=cubedata,aes(x=time)) +
 # Averages per day
 ##################
 
-aggregate(cubedata$occ_inter,list(cubedata$hour),mean) # average per hour
+# Comparison figures
+compa <- aggregate(cubedata$occ_inter,list(cubedata$day,cubedata$hour),mean) # Specific day/time averages
+norm <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cubedata$hour,1)]
 
-aggregate(cubedata$occ_inter,list(cubedata$day),mean) # average per day
+compa <- aggregate(cubedata$occ_inter,list(cubedata$day,cubedata$hour),max) # Specific day/time averages
+max <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cubedata$hour,1)]
 
-aggregate(cubedata$occ_inter,list(cubedata$day,cubedata$hour),mean) # average per day & hour
+# Forecast
+##########
+fit <- nnetar(cubedata$occ_inter)
+  fcast <- forecast(fit,h=72)
+  preddata <- data.frame(vals = c(fcast$x,fcast$mean),
+                       count = 1:(length(fcast$x)+length(fcast$mean)))
+  preddata$ind <- as.factor(ifelse(preddata$count<=length(fcast$x),"Observed","Forecast"))
+  preddata$time <- seq(as.POSIXct("2020-10-10 16:00:00"),
+            length.out = length(preddata$count),
+            by = 1800)
 
-res <- aggregate(cubedata$occ_inter,list(cubedata$day,cubedata$hour),mean) # Specific day/time average
-  res$x[res$Group.1 == "Fri" & res$Group.2 == "14:00:00"]
-
-
+lo <- length(cubedata$occ)-32
+  hi <- length(preddata$vals)
+  
+  
+ggplot(preddata[lo:hi,],aes(x = time,y=vals, group = ind,color = ind)) +
+  geom_line() +
+  geom_vline(xintercept = tail(cubedata$time,1)) +
+  scale_color_manual(values = c("#fcba04","#68e8ff")) +
+    theme_bw()
+  

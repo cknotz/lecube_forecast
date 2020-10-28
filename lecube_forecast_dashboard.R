@@ -244,13 +244,16 @@ output$forecast <- renderPlot({
 ggplot(preddata[lo:hi,],aes(x = epoch,y=vals, group = ind,color = ind)) +
   geom_line() +
   scale_color_manual(values = c("#fcba04","#68e8ff")) +
-  scale_x_continuous(breaks = seq(from = -b/2, to = h/2, by = 5)) +
-  geom_vline(xintercept = 0, color = "#e6fbff", linetype = "dotted") +
+  scale_x_continuous(breaks = seq(from = -b/2, to = h/2, by = 5),
+                     minor_breaks = seq(from = -b/2, to = h/2, by=1)) +
+  geom_vline(xintercept = 0, color = "#e6fbff", linetype = "dotted", size = 1.25) +
     xlab("Hours") +
     ylab("Occupancy (%)") +
     labs(caption = paste0("0 = ",format(tail(cubedata$time,1),"%b %d %H:%M"))) +
     theme_newblue() +
-    theme(legend.title = element_blank())
+    theme(legend.title = element_blank(),
+          panel.grid.minor.x = element_line(size = .1, color = "#e6fbff"),
+          panel.grid.major.x = element_line(size = .25, color = "#e6fbff"))
 
 })
 })

@@ -28,7 +28,7 @@ options(gargle_oauth_cache = ".secrets")
 gs4_auth(email = mail,
          cache = ".secrets")
 
-# Download data
+#Download data
 cubedata <- read_sheet(ss=sheet)
 
 # Remove first observation - originally test
@@ -67,11 +67,14 @@ max <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cub
 ######################
 
 ui <- dashboardPage(
-  dashboardHeader(title = " "),
+  dashboardHeader(title = "Le Cube Forecast"),
   dashboardSidebar(collapsed = T,
     sidebarMenu(menuItem("Current occupancy & forecast",tabName = "data", icon = icon("dashboard")),
                 menuItem("Background info", tabName = "info", icon = icon("info-circle", lib = "font-awesome")))),
   dashboardBody(
+    tags$style(type="text/css",
+    ".js-irs-0 .irs-single, .js-irs-0 .irs-bar-edge, .js-irs-0 .irs-bar {background: #f08c00;border-color: #f08c00;}
+                             .irs-max {font-family: 'arial'; color: white;} .irs-min {font-family: 'arial'; color: white;}"),
     #shinyDashboardThemes(theme = "grey_light"),
     newblueTheme,
     tabItems(
@@ -84,17 +87,35 @@ ui <- dashboardPage(
                     valueBoxOutput("max")
                     ),
                 box(width = 6, title = "How will it look like from now on?", collapsible = F, solidHeader = T,
+                   column(width=6,
+                          br(),
+                          br(),
                     actionBttn(inputId = "forecastbtn",
-                               label = "Run forecast",
+                               label = "(Re-)run forecast",
                                style = "material-flat",
                                color = "warning",
-                               size = "xs"),
-                    plotOutput("forecast")
+                               size = "xs")),
+                   column(width = 6,
+                    sliderInput(inputId = "forecastslider",
+                                label = "Hours to forecast",
+                                min = 5,
+                                max = 36,
+                                value = 15,
+                                step = 1)),
+                   column(width = 12,
+                          plotOutput("forecast"))
                     )
               ),
               fluidRow(
                 box(width = 12, title = "Show me all the data",collapsible = T, solidHeader = T,collapsed = T,
-                    plotOutput("past")
+                    plotOutput("past"),
+                    # sliderInput(inputId = "dataslider",
+                    #             min = as.POSIXlt("2020-10-10 16:00:00", "%Y-%M-%D %H:%M:S",tz = "Europe/Paris"),
+                    #             max = as.POSIXlt(as.character(tail(cubedata$time,1)), "%Y-%M-%D %H:%M:S",tz = "Europe/Paris"),
+                    #             label = "Select data range (days)",
+                    #             ticks = F,
+                    #             step = .1,
+                    #             value = c(as.POSIXct("2020-10-10 16:00:00", "%Y-%M-%D %H:%M:S", tz = "Europe/Paris")))
                     )
               )
               ),
@@ -219,7 +240,7 @@ showModal(modalDialog("Computer's computin', please wait...", footer=NULL))
   
 # Running forecast
 b <- 30 # Time windom 
-h <- 30 
+h <- isolate(input$forecastslider*2) 
   
 fit <- nnetar(cubedata$occ_inter, lambda = "auto")
   fcast <- forecast(fit,h=h)

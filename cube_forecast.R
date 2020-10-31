@@ -27,7 +27,7 @@ cubedata <- cubedata[2:nrow(cubedata),]
 
 # Change datetime format
 cubedata$time <- substr(cubedata$time, 1, 16)
-  cubedata$time <- as.POSIXct(cubedata$time)
+  cubedata$time <- as.POSIXct(cubedata$time, tz="Europe/Paris")
   cubedata$day <- weekdays(cubedata$time,
                            abbreviate = T)
   cubedata$hour <- format(cubedata$time,
@@ -48,14 +48,15 @@ cubedata$occ_inter <- zoo::na.approx(cubedata$occ)
 
 # Graph
 ggplot(data=cubedata,aes(x=time)) +
-  geom_line(aes(y=occ_inter), color="red") +
-  geom_line(aes(y=occ)) +
+  geom_line(aes(y=occ_inter)) +
+  #geom_line(aes(y=occ)) +
   geom_hline(yintercept = 100,linetype="dashed",color="gray") +
   #stat_smooth(aes(y=occ),linetype="dashed",color="gray21", alpha=.2,size=.5) +
+  scale_x_datetime(limits = as.POSIXct(c("2020-10-10 16:00:00","2020-10-17 16:00:00"), tz="Europe/Paris")) +
   ylab("Occupancy (%)") +
   xlab("") +
   theme_bw()
-
+  ggsave("firstdata.png", dpi = 600)
 
 # Averages per day
 ##################
@@ -67,10 +68,16 @@ norm <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cu
 compa <- aggregate(cubedata$occ_inter,list(cubedata$day,cubedata$hour),max) # Specific day/time averages
 max <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cubedata$hour,1)]
 
+# IMPORTANT ; this subsets the data, changed subsequent commands accordingly
+extract <- subset(cubedata, time<= as.POSIXct("2020-10-26 13:00:00", tz="Europe/Paris"))
+
 # Forecast
 ##########
-fit <- nnetar(cubedata$occ_inter)
+fit <- nnetar(extract$occ_inter)
   fcast <- forecast(fit,h=72)
+  autoplot(fcast)
+  ggsave("fcast_example.png", dpi = 600)
+  
   preddata <- data.frame(vals = c(fcast$x,fcast$mean),
                        count = 1:(length(fcast$x)+length(fcast$mean)))
   preddata$ind <- as.factor(ifelse(preddata$count<=length(fcast$x),"Observed","Forecast"))
@@ -84,9 +91,11 @@ lo <- length(cubedata$occ)-32
   
 ggplot(preddata[lo:hi,],aes(x = time,y=vals, group = ind,color = ind)) +
   geom_line() +
-  geom_vline(xintercept = tail(cubedata$time,1)) +
+  #geom_vline(xintercept = tail(cubedata$time,1)) +
   scale_color_manual(values = c("#fcba04","#68e8ff")) +
   guides(color = guide_legend(reverse = TRUE)) +
+  xlab("") +
     theme_bw() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        legend.title = element_blank())
   

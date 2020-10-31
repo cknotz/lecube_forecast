@@ -12,6 +12,7 @@ library(forecast)
 # Get metadata
 sheet <- readLines("sheet.txt")
 mail <- readLines("mail.txt")
+load("bluethemes.RData") 
 
 # Authenticate
 options(gargle_oauth_cache = ".secrets")
@@ -85,5 +86,7 @@ ggplot(preddata[lo:hi,],aes(x = time,y=vals, group = ind,color = ind)) +
   geom_line() +
   geom_vline(xintercept = tail(cubedata$time,1)) +
   scale_color_manual(values = c("#fcba04","#68e8ff")) +
-    theme_bw()
+  guides(color = guide_legend(reverse = TRUE)) +
+    theme_bw() +
+  theme(legend.position = "bottom")
   

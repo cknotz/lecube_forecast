@@ -296,6 +296,7 @@ output$forecast <- renderPlot({
 ggplot(preddata[lo:hi,],aes(x = epoch,y=vals, group = ind,color = ind)) +
   geom_line() +
   scale_color_manual(values = c("#fcba04","#68e8ff")) +
+  guides(color = guide_legend(reverse = TRUE)) +
   scale_x_continuous(breaks = seq(from = -b/2, to = h/2, by = 5),
                      minor_breaks = seq(from = -b/2, to = h/2, by=1)) +
   geom_vline(xintercept = 0, color = "#e6fbff", linetype = "dotted", size = 1.25) +

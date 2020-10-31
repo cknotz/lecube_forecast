@@ -7,8 +7,8 @@ library(dashboardthemes)
 
 setwd("/Users/carloknotz/Dropbox (IDHEAP)/Data/lecube_forecast")
 
-### creating custom theme object
-  newblueTheme <- shinyDashboardThemeDIY(
+### Ocean blue scheme
+  oceanblue <- shinyDashboardThemeDIY(
   
     ### general
     appFontFamily = "Arial"
@@ -137,7 +137,7 @@ setwd("/Users/carloknotz/Dropbox (IDHEAP)/Data/lecube_forecast")
 # Custom ggplot-theme
 #####################
   
-theme_newblue <- function () { 
+theme_oceanblue <- function () { 
     theme_bw(base_size=12, base_family="Arial") %+replace%
       theme(
         panel.background  = element_rect(fill = "#23395d", color = NA),
@@ -154,17 +154,17 @@ theme_newblue <- function () {
       )
 }
 
-save(newblueTheme,theme_newblue, file = "bluethemes.RData")  
+save(oceanblue,theme_oceanblue, file = "bluethemes.RData")  
   
   
- ui <- dashboardPage(
+ui <- dashboardPage(
   dashboardHeader(),
   dashboardSidebar(sidebarMenu(
       menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
       menuItem("Widgets", tabName = "widgets", icon = icon("th"))
     )),
   dashboardBody(
-    newblueTheme,
+    oceanblue,
     tabItems(
     tabItem(tabName = "dashboard",
     fluidRow(
@@ -211,8 +211,8 @@ server <- function(input, output) {
   output$plot1 <- renderPlot({
     ggplot(mtcars, aes(mpg, wt)) +
       geom_point(color = "#68e8ff", size = 3, alpha = .75) +
-      stat_smooth(method = lm, fill = "#68e8ff", color = "#24ff24") +
-      theme_newblue()
+      stat_smooth(method = lm, fill = "#68e8ff", color = "#fcba04") +
+      theme_oceanblue()
   })
   
   output$table <- renderDataTable(mtcars)

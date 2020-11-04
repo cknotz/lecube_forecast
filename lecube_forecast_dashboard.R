@@ -76,7 +76,7 @@ ui <- dashboardPage(
     ".js-irs-0 .irs-single, .js-irs-0 .irs-bar-edge, .js-irs-0 .irs-bar {background: #f08c00;border-color: #f08c00;}
                              .irs-max {font-family: 'arial'; color: white;} .irs-min {font-family: 'arial'; color: white;}"),
     #shinyDashboardThemes(theme = "grey_light"),
-    newblueTheme,
+    oceanblue,
     tabItems(
       tabItem(tabName = "data",
               fluidRow(
@@ -161,7 +161,7 @@ output$past <- renderPlot({
   geom_hline(yintercept = 100,linetype="dashed",color="#e6fbff") +
   ylab("Occupancy (%)") +
   xlab("") +
-  theme_newblue()
+  theme_oceanblue()
 })
 
 {

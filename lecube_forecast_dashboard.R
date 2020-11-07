@@ -55,6 +55,14 @@ cubedata$occ[cubedata$hour %in% c("20:30:00","21:00:00","21:30:00","22:00:00","2
 # Linearly interpolating missing values
 cubedata$occ_inter <- zoo::na.approx(cubedata$occ)
 
+
+############################
+# Cutting post-lockdown data
+cubedata <- cubedata %>% 
+    filter(time < as.POSIXct("2020-11-02 16:30:00",tz="Europe/Paris"))
+############################
+
+
 # Comparison figures
 compa <- aggregate(cubedata$occ_inter,list(cubedata$day,cubedata$hour),mean) # Specific day/time averages
 norm <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cubedata$hour,1)]
@@ -83,8 +91,9 @@ ui <- dashboardPage(
                 column(width = 6,
                 box(width = NULL, title = "Important Info",collapsible = F, solidHeader = T,
                     HTML("<p>As of November 4, 2020 and due to the new COVID-19 outbreak in Switzerland, Le Cube has been closed, along with all other climbing gyms, museums, restaurants, etc.
-                         in the entire canton of Vaud. I will keep collecting data from their website, but the data and the forecasting function
-                         are currently not accurately reflecting the normal situation at the gym.</p>")),
+                         in the entire canton of Vaud. I will keep collecting data from their website, but the data shown here end on November 2 at 4pm.</p>
+                         
+                         <p>The data and dashboard will be updated once the situation changes.</p>")),
                 box(width = NULL, title = paste0("How does it look at the gym (as of ",substr(tail(cubedata$hour,1),1,5),")?"),
                     collapsible = F, solidHeader = T,
                     valueBoxOutput("current"),
@@ -308,7 +317,7 @@ ggplot(preddata[lo:hi,],aes(x = epoch,y=vals, group = ind,color = ind)) +
     xlab("Hours") +
     ylab("Occupancy (%)") +
     labs(caption = paste0("0 = ",format(tail(cubedata$time,1),"%b %d %H:%M"))) +
-    theme_newblue() +
+    theme_oceanblue() +
     theme(legend.title = element_blank(),
           panel.grid.minor.x = element_line(size = .1, color = "#e6fbff"),
           panel.grid.major.x = element_line(size = .25, color = "#e6fbff"))

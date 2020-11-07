@@ -80,13 +80,19 @@ ui <- dashboardPage(
     tabItems(
       tabItem(tabName = "data",
               fluidRow(
-                box(width = 6, title = paste0("How does it look at the gym (as of ",substr(tail(cubedata$hour,1),1,5),")?"),
+                column(width = 6,
+                box(width = NULL, title = "Important Info",collapsible = F, solidHeader = T,
+                    HTML("<p>As of November 4, 2020 and due to the new COVID-19 outbreak in Switzerland, Le Cube has been closed, along with all other climbing gyms, museums, restaurants, etc.
+                         in the entire canton of Vaud. I will keep collecting data from their website, but the data and the forecasting function
+                         are currently not accurately reflecting the normal situation at the gym.</p>")),
+                box(width = NULL, title = paste0("How does it look at the gym (as of ",substr(tail(cubedata$hour,1),1,5),")?"),
                     collapsible = F, solidHeader = T,
                     valueBoxOutput("current"),
                     valueBoxOutput("normal"),
                     valueBoxOutput("max")
-                    ),
-                box(width = 6, title = "How will it look like from now on?", collapsible = F, solidHeader = T,
+                    )),
+                column(width = 6,
+                box(width = NULL, title = "How will it look like from now on?", collapsible = F, solidHeader = T,
                    column(width=6,
                           br(),
                           br(),
@@ -104,8 +110,7 @@ ui <- dashboardPage(
                                 step = 1)),
                    column(width = 12,
                           plotOutput("forecast"))
-                    )
-              ),
+                    ))),
               fluidRow(
                 box(width = 12, title = "Show me all the data",collapsible = T, solidHeader = T,collapsed = T,
                     plotOutput("past"),

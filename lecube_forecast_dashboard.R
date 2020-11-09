@@ -56,11 +56,11 @@ cubedata$occ[cubedata$hour %in% c("20:30:00","21:00:00","21:30:00","22:00:00","2
 cubedata$occ_inter <- zoo::na.approx(cubedata$occ)
 
 
-############################
-# Cutting post-lockdown data
-cubedata <- cubedata %>% 
-    filter(time < as.POSIXct("2020-11-02 16:30:00",tz="Europe/Paris"))
-############################
+# ############################
+# # Cutting post-lockdown data
+# cubedata <- cubedata %>% 
+#     filter(time < as.POSIXct("2020-11-02 16:30:00",tz="Europe/Paris"))
+# ############################
 
 
 # Comparison figures

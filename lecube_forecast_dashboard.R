@@ -57,9 +57,9 @@ cubedata$occ_inter <- zoo::na.approx(cubedata$occ)
 
 
 # ############################
-# # Cutting post-lockdown data
-# cubedata <- cubedata %>% 
-#     filter(time < as.POSIXct("2020-11-02 16:30:00",tz="Europe/Paris"))
+# Cutting post-lockdown data
+cubedata <- cubedata %>%
+    filter(time < as.POSIXct("2020-11-02 16:30:00",tz="Europe/Paris"))
 # ############################
 
 
@@ -89,9 +89,9 @@ ui <- dashboardPage(
       tabItem(tabName = "data",
               fluidRow(
                 column(width = 6,
-                box(width = NULL, title = "Important Info",collapsible = F, solidHeader = T,
+                box(width = NULL, title = "Important info",collapsible = F, solidHeader = T,
                     HTML("<p>As of November 4, 2020 and due to the new COVID-19 outbreak in Switzerland, Le Cube has been closed, along with all other climbing gyms, museums, restaurants, etc.
-                         in the entire canton of Vaud. I will keep collecting data from their website, but the data shown here end on November 2 at 4pm.</p>
+                         in the entire canton of Vaud. I will keep collecting data from their website, but the dashboard will for now only feature data up to November 2 at 4pm.</p>
                          
                          <p>The data and dashboard will be updated once the situation changes.</p>")),
                 box(width = NULL, title = paste0("How does it look at the gym (as of ",substr(tail(cubedata$hour,1),1,5),")?"),
@@ -138,24 +138,21 @@ ui <- dashboardPage(
                 box(width = 12, solidHeader = T,collapsible = F,title = "Background & Methods",
                     HTML("<p>Crowded bouldering gyms aren't fun - and especially now that there is a significant risk that someone
                          in the gym might carry and spread the new coronavirus. Luckily, my local gym (Le Cube in Lausanne) has
-                         a neat little dial on their website (<a href='http://www.lecube.ch/' target='_blank'>lecube.ch</a>) that tells how full the gym is at any given point in time.</p>
-                         
-                         <p>But why stop there when we also have tools to forecast how busy the gym will be over the next hours?
+                         a neat little dial on their website (<a href='http://www.lecube.ch/' target='_blank'>lecube.ch</a>) that tells how full the gym is at any given point in time. 
+                         But why stop there when we also have tools to forecast how busy the gym will be over the next hours?
                          This is the idea behind this dashboard.</p>
                          
                          <p>The data for this dashboard are scraped from the lecube.ch website every full and half hour and stored
-                         in the cloud (this started on the afternoon of October 10, 2020 and is ongoing).</p>
+                         in the cloud.</p>
                          
-                         <p>Now that several weeks worth of data have been collected, I built this dashboard, which retrieves the data, shows simple descriptive
-                         information and features a forecast function to estimate how busy the gym will be over the next five to 36 hours.</p>
-                         
-                         <p>The forecast is estimated anew every time the dashboard is started and the '(Re-)run forecast' button is klicked.
+                         <p>The forecasts are estimated anew every time the dashboard is started and the '(Re-)run forecast' button is klicked.
                          The algorithm behind the forecast is a neural network for time-series data, specifically the <code>nnetar()</code>
                          function contained in the <code>forecast</code>-package (see <a target='_blank' href='https://otexts.com/fpp2/'>Hyndman & Athanasopoulos, 2018</a>), which estimates a feed-forward neural network with a single hidden node and a variable number of lagged values 
-                         as inputs. The optimal configuration is determined automatically on a case-by-case basis.</p>
+                         as inputs. The optimal configuration is determined automatically.</p>
                          
                          <p>The code to scrape the data, sample code for the forecasting function, and the code for this dashboard
-                         are deposited on my <a href='https://github.com/cknotz/lecube_forecast' target='_blank'>GitHub profile</a>.</p>
+                         are all deposited on my <a href='https://github.com/cknotz/lecube_forecast' target='_blank'>GitHub profile</a>, and
+                         I describe in more detail how I went about everything in my <a href='https://carlo-knotz.medium.com/crowd-avoidance-with-data-science-cc2567f9eecb' target='_blank'>Medium post</a></p>
                          
                          <p>The next step will be to determine an optimal forecasting model by comparing the performances of a number of 
                          different estimators against each other. This will be done as soon as more data have been collected and there is enough

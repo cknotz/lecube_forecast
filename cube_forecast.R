@@ -52,7 +52,7 @@ ggplot(data=cubedata,aes(x=time)) +
   #geom_line(aes(y=occ)) +
   geom_hline(yintercept = 100,linetype="dashed",color="gray") +
   #stat_smooth(aes(y=occ),linetype="dashed",color="gray21", alpha=.2,size=.5) +
-  scale_x_datetime(limits = as.POSIXct(c("2020-10-10 16:00:00","2020-10-17 16:00:00"), tz="Europe/Paris")) +
+  #scale_x_datetime(limits = as.POSIXct(c("2020-10-10 16:00:00","2020-10-17 16:00:00"), tz="Europe/Paris")) +
   ylab("Occupancy (%)") +
   xlab("") +
   theme_bw()
@@ -68,34 +68,62 @@ norm <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cu
 compa <- aggregate(cubedata$occ_inter,list(cubedata$day,cubedata$hour),max) # Specific day/time averages
 max <- compa$x[compa$Group.1 == tail(cubedata$day,1) & compa$Group.2 == tail(cubedata$hour,1)]
 
-# IMPORTANT ; this subsets the data, changed subsequent commands accordingly
-extract <- subset(cubedata, time<= as.POSIXct("2020-10-26 13:00:00", tz="Europe/Paris"))
-
+##########
 # Forecast
 ##########
-fit <- nnetar(extract$occ_inter)
-  fcast <- forecast(fit,h=72)
-  autoplot(fcast)
-  ggsave("fcast_example.png", dpi = 600)
   
-  preddata <- data.frame(vals = c(fcast$x,fcast$mean),
-                       count = 1:(length(fcast$x)+length(fcast$mean)))
-  preddata$ind <- as.factor(ifelse(preddata$count<=length(fcast$x),"Observed","Forecast"))
-  preddata$time <- seq(as.POSIXct("2020-10-10 16:00:00"),
-            length.out = length(preddata$count),
-            by = 1800)
+# Setting test and train data
+#############################
+  
+traindata <- subset(cubedata, time<= as.POSIXct("2020-11-03 23:30:00", tz="Europe/Paris")) # pre-Nov lockdown
 
-lo <- length(cubedata$occ)-32
-  hi <- length(preddata$vals)
+  firsthr <- 48*(as.Date("2020-10-10 16:00:00")-as.Date("2020-01-01 00:00:00"))
+  train <- ts(traindata$occ_inter,
+                 start = c(2020,firsthr),
+                 frequency = 48*365) 
+
+testdata <- subset(cubedata, time>= as.POSIXct("2020-11-23 00:00:00", tz="Europe/Paris")) # post-Nov lockdown
   
+  firsthr <- 48*(as.Date("2020-11-23 00:00:00")-as.Date("2020-01-01 00:00:00"))
+  test <- ts(testdata$occ_inter,
+             start = c(2020,firsthr),
+             frequency = 48*365)
   
-ggplot(preddata[lo:hi,],aes(x = time,y=vals, group = ind,color = ind)) +
-  geom_line() +
-  #geom_vline(xintercept = tail(cubedata$time,1)) +
-  scale_color_manual(values = c("#fcba04","#68e8ff")) +
-  guides(color = guide_legend(reverse = TRUE)) +
-  xlab("") +
-    theme_bw() +
-  theme(legend.position = "bottom",
-        legend.title = element_blank())
+# Descriptives
+#############
   
+mean(traindata$occ_inter)
+  sd(traindata$occ_inter)
+mean(testdata$occ_inter)
+  sd(testdta$occ_inter) # looks reasonably similar
+
+
+# Result dataset
+s <- 2 # start
+  e <- 24 # end
+  step <- 1 #step
+  
+eval <- data.frame(p = seq(from=s,to=e,by=step),
+                   RMSE = seq(from=s,to=e,by=step),
+                   MAE = seq(from=s,to=e,by=step))
+  
+# NNETAR
+
+for(k in eval$p) {
+fit <- nnetar(traindata$occ_inter,
+              lambda = "auto",
+              p=`k`) # loop over values for this
+  
+  res <- nnetar(testdata$occ_inter, model = fit) # fit model to test data
+  eval[which(eval$p==`k`),"RMSE"] <-  accuracy(res)[1,"RMSE"] # retrieve RMSE
+  eval[which(eval$p==`k`),"MAE"] <- accuracy(res)[1,"MAE"] # retrieve MAE
+}
+
+eval %>% 
+  pivot_longer(cols = c("RMSE","MAE"),
+               names_to = "ind",
+               values_to = "val") %>% 
+  ggplot(aes(x=p,y=val,fill=ind)) +
+      geom_col(position = "dodge")
+ 
+ 

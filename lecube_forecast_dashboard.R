@@ -57,10 +57,10 @@ cubedata$occ_inter <- zoo::na.approx(cubedata$occ)
 
 
 # ############################
-# Cutting post-lockdown data
-cubedata <- cubedata %>%
-    filter(time < as.POSIXct("2020-11-02 16:30:00",tz="Europe/Paris"))
-# ############################
+# # Cutting post-lockdown data
+# cubedata <- cubedata %>%
+#     filter(time < as.POSIXct("2020-11-02 16:30:00",tz="Europe/Paris"))
+# # ############################
 
 
 # Comparison figures
@@ -284,7 +284,7 @@ showModal(modalDialog("Computer's computin', please wait...", footer=NULL))
 b <- 30 # Time windom 
 h <- isolate(input$forecastslider*2) 
   
-fit <- nnetar(cubedata$occ_inter, lambda = "auto")
+fit <- nnetar(cubedata$occ_inter, lambda = "auto") # set lambda to 0, i.e. Box-Cox transform to ensure positive values
   fcast <- forecast(fit,h=h)
   preddata <- data.frame(vals = c(fcast$x,fcast$mean),
                        count = 1:(length(fcast$x)+length(fcast$mean)))
